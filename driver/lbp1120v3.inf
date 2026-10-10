@@ -1,0 +1,64 @@
+; lbp1120v3.inf - Canon LASER SHOT LBP-1120 (CAPT), Windows x64, v3 Unidrv driver.
+;
+; In-box Unidrv (unidrv.dll / unidrvui.dll / unires.dll / stdnames.gpd via ntprint.inf
+; UNIDRV.OEM + UNIDRV_DATA) + our GPD + our render plug-in lbp1120rnd.dll (lbp1120.ini)
+; + the CAPT language monitor lbp1120lm.dll (built separately in ..\langmon).
+;
+; Unsigned as built: install.ps1 builds lbp1120v3.cat from lbp1120v3.cdf and signs it (test certificate).
+; The encoder inside lbp1120rnd.dll is derived from capt-0.1 (GPLv2).
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = Printer
+ClassGUID   = {4D36E979-E325-11CE-BFC1-08002BE10318}
+Provider    = %Provider%
+CatalogFile = lbp1120v3.cat
+DriverVer   = 10/10/2026,1.0.0.0
+DriverIsolation = 2
+
+[Manufacturer]
+%Mfg% = Canon, NTamd64
+
+; Hardware ID read from this machine's PnP tree (USB\VID_04A9&PID_262B -> USBPRINT child).
+[Canon.NTamd64]
+%Model% = LBP1120V3, USBPRINT\CanonLASER_SHOT_LBP-91D2
+%Model% = LBP1120V3, CanonLASER_SHOT_LBP-91D2
+
+[LBP1120V3]
+CopyFiles       = LBP1120V3_Files
+CopyFiles       = LBP1120V3_Monitor
+DataFile        = lbp1120.gpd
+DataSection     = UNIDRV_DATA
+Include         = NTPRINT.INF
+Needs           = UNIDRV.OEM, UNIDRV_DATA
+LanguageMonitor = %LangMon%
+
+[LBP1120V3_Files]
+lbp1120.gpd
+lbp1120.ini
+lbp1120rnd.dll
+
+; Print monitors live in %SystemRoot%\System32 (dirid 66002).
+[LBP1120V3_Monitor]
+lbp1120lm.dll
+
+[DestinationDirs]
+DefaultDestDir    = 66000
+LBP1120V3_Files   = 66000
+LBP1120V3_Monitor = 66002
+
+[SourceDisksNames.amd64]
+1 = %Disk%,,,""
+
+[SourceDisksFiles.amd64]
+lbp1120.gpd    = 1
+lbp1120.ini    = 1
+lbp1120rnd.dll = 1
+lbp1120lm.dll  = 1
+
+[Strings]
+Provider = "LBP-1120 x64 POC"
+Mfg      = "Canon"
+Model    = "Canon LBP-1120 CAPT (x64)"
+LangMon  = "LBP1120 CAPT Monitor,lbp1120lm.dll"
+Disk     = "Canon LBP-1120 CAPT (x64) driver package"

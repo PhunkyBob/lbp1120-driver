@@ -1,0 +1,18 @@
+# Build outputs (build.cmd)
+obj/
+bin/
+pkg/
+
+# MSVC artifacts
+*.obj
+*.res
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.exe
+*.cat
+
+# Release zip (package.ps1)
+dist/

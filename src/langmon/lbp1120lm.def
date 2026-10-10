@@ -1,0 +1,4 @@
+LIBRARY lbp1120lm
+EXPORTS
+    InitializePrintMonitor2
+    LbpLmLogStatus

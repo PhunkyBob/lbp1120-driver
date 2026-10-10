@@ -1,0 +1,60 @@
+# Builds the driver on a GitHub Windows runner and packages it (package.ps1).
+#  - push of a tag v<version> (e.g. v1.0): creates the GitHub release with the zip attached;
+#  - manual run (Actions tab > release > Run workflow): the zip is kept as a workflow artifact.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write   # gh release create
+
+jobs:
+  build:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (MSVC x64, Windows SDK 10.0.26100)
+        shell: cmd
+        run: call build.cmd
+
+      - name: Package
+        id: pkg
+        shell: pwsh
+        run: |
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME -replace '^v', '' } else { "dev-$($env:GITHUB_SHA.Substring(0, 7))" }
+          $out = & ./package.ps1 -Version $version
+          $out
+          "zip=$($out[0])" >> $env:GITHUB_OUTPUT
+          "sha256=$(($out[1] -split ' ')[1])" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lbp1120-driver-x64
+          path: dist/*.zip
+
+      - name: GitHub release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZIP: ${{ steps.pkg.outputs.zip }}
+          SHA256: ${{ steps.pkg.outputs.sha256 }}
+        run: |
+          $notes = @"
+          Pilote Canon LASER SHOT LBP-1120 (CAPT) pour Windows 10 / 11 x64, compilé par GitHub Actions à partir du tag $env:GITHUB_REF_NAME ($env:GITHUB_SHA).
+
+          **Installation** : décompresser le zip, ouvrir **Windows PowerShell en administrateur** dans le dossier ``lbp1120-driver-$($env:GITHUB_REF_NAME -replace '^v', '')-x64``, imprimante branchée et allumée, puis :
+
+          ``````powershell
+          Get-ChildItem -Recurse | Unblock-File; Set-ExecutionPolicy -Scope Process Bypass -Force; .\install.ps1
+          ``````
+
+          Le paquet est signé sur votre machine par un certificat de test créé pour l'occasion (clé privée détruite aussitôt) : voir le README.
+
+          SHA-256 du zip : ``$env:SHA256``
+          "@
+          gh release create $env:GITHUB_REF_NAME $env:ZIP --title "LBP-1120 x64 $env:GITHUB_REF_NAME" --notes $notes

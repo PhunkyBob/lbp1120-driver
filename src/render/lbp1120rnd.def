@@ -1,0 +1,4 @@
+LIBRARY     lbp1120rnd
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE

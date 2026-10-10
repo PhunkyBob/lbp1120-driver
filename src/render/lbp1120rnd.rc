@@ -1,0 +1,30 @@
+#include <winver.h>
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+ FILEFLAGS      0
+ FILEOS         VOS_NT_WINDOWS32
+ FILETYPE       VFT_DRV
+ FILESUBTYPE    VFT2_DRV_PRINTER
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName",      "LBP-1120 x64 POC (GPLv2, derived from capt-0.1 by N. Boichat)\0"
+            VALUE "FileDescription",  "Canon LBP-1120 CAPT Unidrv render plug-in (x64)\0"
+            VALUE "FileVersion",      "1.0.0.0\0"
+            VALUE "InternalName",     "lbp1120rnd\0"
+            VALUE "LegalCopyright",   "GNU General Public License v2 or later\0"
+            VALUE "OriginalFilename", "lbp1120rnd.dll\0"
+            VALUE "ProductName",      "Canon LBP-1120 CAPT (x64)\0"
+            VALUE "ProductVersion",   "1.0.0.0\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

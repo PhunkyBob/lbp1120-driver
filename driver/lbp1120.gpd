@@ -1,0 +1,156 @@
+*%
+*% lbp1120.gpd - Unidrv (v3) GPD for the Canon LASER SHOT LBP-1120 (CAPT, host-based).
+*%
+*% Unidrv only rasterises: 600x600 dpi, 1 bpp, A4 portrait. It emits NO printer language of
+*% its own (every *Cmd is ""). The render plug-in lbp1120rnd.dll (declared in lbp1120.ini)
+*% receives every band through IPrintOemUni::ImageProcessing (DevBPP = 0 => the plug-in sends
+*% the raster) and writes the CAPT stream with DrvWriteSpoolBuf.
+*%
+*% Geometry = captsend / capt.c with topskip = leftskip = 0:
+*%   capt.c encodes LINE_SIZE = 592 bytes (4736 px) x LINES_BY_PAGE = 6968 lines, taken from
+*%   the top-left corner of a full-page 600 dpi bitmap. Hence PrintableOrigin (0,0) and
+*%   PrintableArea 4736 x 6968 (master units = device pixels at 600 dpi). A4 = 4960 x 7016.
+*%
+
+*GPDFileName: "lbp1120.gpd"
+*GPDFileVersion: "1.0"
+*GPDSpecVersion: "1.0"
+*Include: "StdNames.gpd"
+*ModelName: "Canon LBP-1120 CAPT (x64)"
+*MasterUnits: PAIR(600, 600)
+*ResourceDLL: "unires.dll"
+*PrinterType: PAGE
+*% No device copies: the spooler/GDI re-renders each copy.
+*MaxCopies: 1
+*PrintRate: 10
+*PrintRatePPM: 10
+*PrintRateUnit: PPM
+
+*Feature: Orientation
+{
+    *rcNameID: =ORIENTATION_DISPLAY
+    *DefaultOption: PORTRAIT
+    *Option: PORTRAIT
+    {
+        *rcNameID: =PORTRAIT_DISPLAY
+    }
+}
+
+*Feature: InputBin
+{
+    *rcNameID: =PAPER_SOURCE_DISPLAY
+    *DefaultOption: AUTO
+    *Option: AUTO
+    {
+        *rcNameID: =AUTO_DISPLAY
+    }
+}
+
+*Feature: Resolution
+{
+    *rcNameID: =RESOLUTION_DISPLAY
+    *DefaultOption: Option1
+    *Option: Option1
+    {
+        *Name: "600 x 600" =DOTS_PER_INCH
+        *DPI: PAIR(600, 600)
+        *TextDPI: PAIR(600, 600)
+        *SpotDiameter: 100
+        *Command: CmdBeginRaster { *Cmd : "" }
+        *Command: CmdEndRaster { *Cmd : "" }
+        *Command: CmdSendBlockData { *Cmd : "" }
+    }
+}
+
+*Feature: PaperSize
+{
+    *rcNameID: =PAPER_SIZE_DISPLAY
+    *DefaultOption: A4
+    *Option: A4
+    {
+        *rcNameID: =RCID_DMPAPER_SYSTEM_NAME
+        *PrintableArea: PAIR(4736, 6968)
+        *PrintableOrigin: PAIR(0, 0)
+        *CursorOrigin: PAIR(0, 0)
+    }
+}
+
+*Feature: ColorMode
+{
+    *rcNameID: =COLOR_PRINTING_MODE_DISPLAY
+    *DefaultOption: Mono
+    *Option: Mono
+    {
+        *rcNameID: =MONO_DISPLAY
+        *% DevBPP/DevNumOfPlanes = 0: the OEM ImageProcessing method outputs the raster itself.
+        *DevNumOfPlanes: 0
+        *DevBPP: 0
+        *DrvBPP: 1
+        *IPCallbackID: 1
+        *Color?: FALSE
+    }
+}
+
+*Feature: Halftone
+{
+    *rcNameID: =HALFTONING_DISPLAY
+    *DefaultOption: HT_PATSIZE_AUTO
+    *Option: HT_PATSIZE_AUTO
+    {
+        *rcNameID: =HT_AUTO_SELECT_DISPLAY
+    }
+    *Option: HT_PATSIZE_SUPERCELL_M
+    {
+        *rcNameID: =HT_SUPERCELL_DISPLAY
+    }
+    *Option: HT_PATSIZE_6x6_M
+    {
+        *rcNameID: =HT_DITHER6X6_DISPLAY
+    }
+    *Option: HT_PATSIZE_8x8_M
+    {
+        *rcNameID: =HT_DITHER8X8_DISPLAY
+    }
+}
+
+*%------------------------------------------------------------------------------------------
+*% Job / page commands. Only CmdStartPage does something: it calls back into the plug-in
+*% (IPrintOemUni::CommandCallback, ID 1), which emits the PREVIOUS page's CAPT stream and
+*% starts collecting the new page. The last page is emitted from the DrvEndDoc hook.
+*%------------------------------------------------------------------------------------------
+*Command: CmdStartDoc
+{
+    *Order: DOC_SETUP.1
+    *Cmd: ""
+}
+*Command: CmdStartPage
+{
+    *Order: PAGE_SETUP.1
+    *CallbackID: 1
+}
+*Command: CmdEndJob
+{
+    *Order: JOB_FINISH.1
+    *Cmd: ""
+}
+
+*%------------------------------------------------------------------------------------------
+*% Cursor / raster model (no effect on the output: Unidrv sends no raster, the plug-in does)
+*%------------------------------------------------------------------------------------------
+*RotateCoordinate?: FALSE
+*RotateRaster?: FALSE
+*RotateFont?: FALSE
+*CursorXAfterCR: AT_PRINTABLE_X_ORIGIN
+*XMoveThreshold: 0
+*YMoveThreshold: 0
+*XMoveUnit: 600
+*YMoveUnit: 600
+*EjectPageWithFF?: TRUE
+*OutputDataFormat: H_BYTE
+*OptimizeLeftBound?: FALSE
+*CursorXAfterSendBlockData: AT_GRXDATA_ORIGIN
+*CursorYAfterSendBlockData: AUTO_INCREMENT
+
+*Command: CmdCR { *Cmd : "" }
+*Command: CmdLF { *Cmd : "" }
+*Command: CmdFF { *Cmd : "" }
